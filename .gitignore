@@ -1,0 +1,6 @@
+*
+# Allowing the following files
+!.gitignore
+!*.java
+!README.md
+!LICENSE

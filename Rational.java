@@ -1,7 +1,6 @@
 import java.math.BigInteger;
-import java.math.BigDecimal;
 
-public class Rational{
+public class Rational implements RealNumber{
     final BigInteger nom, denom;
     Rational(BigInteger nom, BigInteger denom){
         if (denom.compareTo(BigInteger.ZERO) == 0)
@@ -29,28 +28,56 @@ public class Rational{
     BigInteger getDenom(){
         return denom;
     }
-    BigDecimal getReal(int precision){
-        return new BigDecimal(nom).divide(new BigDecimal(denom),precision,BigDecimal.ROUND_HALF_UP);
+    Decimal getReal(int precision){
+        return (Decimal)new Decimal(nom).div(new Decimal(denom));
     }
-    BigDecimal getReal(){
-        return getReal(10);
+    Decimal getReal(){
+        return getReal(15);
     }
-    BigDecimal getRealExact(){
-        return new BigDecimal(nom).divide(new BigDecimal(denom));
+    Decimal getRealExact(){
+        return (Decimal)new Decimal(nom).div(new Decimal(denom));
     }
-    Rational add(Rational r){
-        return new Rational(nom.multiply(r.getDenom()).add(r.getNom().multiply(denom)), denom.multiply(r.getDenom()));
+    public RealNumber add(RealNumber real){
+        if (real instanceof Decimal){
+            try{
+                return ((Decimal)real).add(this);
+            } catch (ArithmeticException e) {
+                return ((Decimal)real).add(this);
+            }
+        }
+        return new Rational(nom.multiply(((Rational)real).getDenom()).add(((Rational)real).getNom().multiply(denom)), denom.multiply(((Rational)real).getDenom()));
     }
-    Rational sub(Rational r){
-        return add(r.negate());
+    public RealNumber sub(RealNumber real){
+        if (real instanceof Decimal){
+            try{
+                return ((Decimal)real).add(negate());
+            } catch (ArithmeticException e) {
+                return ((Decimal)real).add(negate());
+            }
+        }
+        return add(((Rational)real).negate());
     }
-    Rational mult(Rational r){
-        return new Rational(nom.multiply(r.getNom()), denom.multiply(r.getDenom()));
+    public RealNumber mult(RealNumber real){
+        if (real instanceof Decimal){
+            try{
+                return ((Decimal)real).mult(getRealExact());
+            } catch (ArithmeticException e) {
+                return ((Decimal)real).mult(getReal());
+            }
+        }
+        return new Rational(nom.multiply(((Rational)real).getNom()), denom.multiply(((Rational)real).getDenom()));
     }
-    Rational div(Rational r){
-        return mult(r.reciprocal());
+    public RealNumber div(RealNumber real){
+        if (real instanceof Decimal){
+            try{
+                return ((Decimal)real).div(getRealExact());
+            } catch (ArithmeticException e) {
+                return ((Decimal)real).div(getReal());
+            }
+        }
+        return mult(((Rational)real).reciprocal());
     }
-    Rational pow(int n){
+    public RealNumber power(int n){
         Rational result = this;
         if (n == 0){
             return new Rational(BigInteger.ONE, BigInteger.ONE);
@@ -60,18 +87,25 @@ public class Rational{
             n = -n;
         }
         for (int i = 1; i < n; i++) {
-            result = result.mult(this);
+            result = (Rational)result.mult(this);
         }
         return result;
     }
-    Rational reciprocal(){
+    public Rational reciprocal(){
         return new Rational(denom, nom);
     }
     Rational negate(){
         return new Rational(nom.negate(), denom);
     }
-    int compareTo(Rational r){
-        return (nom.multiply(r.getDenom())).compareTo(r.getNom().multiply(denom));
+    public int compareTo(RealNumber real){
+        if (real instanceof Decimal){
+            try{
+                return ((Decimal)real).compareTo(this);
+            } catch (ArithmeticException e) {
+                return ((Decimal)real).compareTo(this);
+            }
+        }
+        return (nom.multiply(((Rational)real).getDenom())).compareTo(((Rational)real).getNom().multiply(denom));
     }
     boolean gr(Rational r){
         return compareTo(r) == 1;

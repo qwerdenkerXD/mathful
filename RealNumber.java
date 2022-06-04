@@ -4,5 +4,5 @@ interface RealNumber {
     public RealNumber mult(RealNumber real);
     public RealNumber sub(RealNumber real);
     public RealNumber div(RealNumber real);
-    public RealNumber pow(int n);
+    public RealNumber power(int n);
 }

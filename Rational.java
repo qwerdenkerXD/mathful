@@ -3,7 +3,6 @@ import java.math.BigInteger;
 public class Rational implements RealNumber{
     final BigInteger nom, denom;
     Rational(BigInteger nom, BigInteger denom){
-        // System.out.println(nom+"/"+denom);
         if (denom.compareTo(BigInteger.ZERO) == 0)
             throw new IllegalArgumentException("Zero in denominator");
         if (nom.compareTo(BigInteger.ZERO) == 0){
@@ -25,11 +24,9 @@ public class Rational implements RealNumber{
         }
         this.nom = nom.divide(n);
         this.denom = denom.divide(n);
-        if ((this.denom).compareTo(BigInteger.ZERO) < 0)
-            System.out.println((this.denom).compareTo(BigInteger.ZERO)+" "+this.nom+"/"+this.denom+" "+n+" "+nom+"/"+denom);
         assert (this.denom).compareTo(BigInteger.ZERO) >= 0:"Denominator negative";
         assert (this.denom).compareTo(BigInteger.ZERO) != 0:"Denominator zero";
-        assert (this.nom).gcd(denom).compareTo(BigInteger.ONE) == 0:"Rational not shortened correctly";
+        assert (this.nom).gcd(this.denom).compareTo(BigInteger.ONE) == 0:"Rational not shortened correctly";
     }
     Rational(int nom, int denom){
         this(new BigInteger(nom + ""), new BigInteger(denom + ""));
@@ -50,10 +47,14 @@ public class Rational implements RealNumber{
         return denom;
     }
     Decimal getReal(int precision){
-        return (Decimal)new Decimal(nom).div(new Decimal(denom));
+        return new Decimal(new Decimal(nom).divide(new Decimal(denom), precision, Decimal.ROUND_HALF_UP));
     }
     Decimal getReal(){
-        return getReal(15);
+        try{
+            return getRealExact();
+        } catch (ArithmeticException e) {
+            return getReal(15);
+        }
     }
     Decimal getRealExact(){
         return (Decimal)new Decimal(nom).div(new Decimal(denom));
@@ -120,11 +121,7 @@ public class Rational implements RealNumber{
     }
     public int compareTo(RealNumber real){
         if (real instanceof Decimal){
-            try{
-                return ((Decimal)real).compareTo(this);
-            } catch (ArithmeticException e) {
-                return ((Decimal)real).compareTo(this);
-            }
+            return compareTo(((Decimal)real).getRational());
         }
         return (nom.multiply(((Rational)real).getDenom())).compareTo(((Rational)real).getNom().multiply(denom));
     }

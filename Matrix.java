@@ -43,7 +43,7 @@ public class Matrix{
         mat[col][row] = value;
     }
     void incValue(int col, int row, RealNumber incValue){
-        mat[col][row].add(incValue);
+        mat[col][row] = mat[col][row].add(incValue);
     }
     void setCol(int c, RealNumber[] col) {
         if (col == null)
@@ -84,14 +84,14 @@ public class Matrix{
         setRow(r2, r);
     }
     void add(Matrix m){
-        addMultiplied(m,new Rational(BigInteger.ONE));
+        addMultiplied(m,new Rational(1));
     }
     void sub(Matrix m){
-        addMultiplied(m,new Rational(BigInteger.ONE.negate()));
+        addMultiplied(m,new Rational(-1));
     }
     void mult(RealNumber x){
         RealNumber checksum = sumOfValues();
-        addMultiplied(this, x.sub(new Rational(BigInteger.ONE)));
+        addMultiplied(this, x.sub(new Rational(1)));
         assert sumOfValues().compareTo(x.mult(checksum)) == 0:"Multiplication Error with constant";
     }
     void pow(int n) {
@@ -110,7 +110,7 @@ public class Matrix{
         for (int i = 1; i < n; i++)
             mult(this,clone);
     }
-    void invert() { //integer division included, matrix not correct in many cases
+    void invert() {
         if (!isSquareMatrix())
             throw new UnsupportedOperationException("Tried to invert a non-squared matrix");
         if (!isInvertable())
@@ -119,28 +119,35 @@ public class Matrix{
         Matrix inverse = getIdentityMatrix(colCount);
         Matrix clone = clone();
         for (int col = 0; col < colCount; col++) {
-            RealNumber[] solutionRow = null;
-            for (int row = col; solutionRow == null; row++) {
+            int undoSwitch = -1;
+            for (int row = col; undoSwitch == -1; row++) {
                 if (getValue(col, row).compareTo(new Rational()) != 0){
-                    solutionRow = getRow(row);
                     switchRows(row, 0);
                     inverse.switchRows(row, 0);
+                    undoSwitch = row;
                 } 
             }
             for (int row = 1; row < rowCount; row++) {
                 if (getValue(col, row).compareTo(new Rational()) != 0) {
-                    RealNumber multiplier = getValue(col, row).div(solutionRow[col]);
-                    for (int i = col; i < colCount; i++) {
-                        setValue(i, row, getValue(i, row).sub(multiplier.mult(solutionRow[i])));
-                        inverse.setValue(i, row, getValue(i, row).sub(multiplier.mult(solutionRow[i])));
+                    RealNumber multiplier = getValue(col, row).div(getValue(col, 0));
+                    for (int i = 0; i < colCount; i++) {
+                        setValue(i, row, getValue(i, row).sub(multiplier.mult(getValue(i, 0))));
+                        inverse.setValue(i, row, inverse.getValue(i, row).sub(multiplier.mult(inverse.getValue(i, 0))));
                     }
                 }
             }
-            switchRows(0,col);
-            inverse.switchRows(0,col);
+            RealNumber divider = getValue(col, 0);
+            for (int c = 0; c < colCount; c++) {
+                setValue(c, 0, getValue(c, 0).div(divider));
+                inverse.setValue(c, 0, inverse.getValue(c, 0).div(divider));
+            }
+            switchRows(undoSwitch, 0);
+            inverse.switchRows(undoSwitch, 0);
+            switchRows(undoSwitch,col);
+            inverse.switchRows(undoSwitch,col);
         }
         importValues(inverse);
-        assert mult(clone, inverse).equals(getIdentityMatrix(colCount));
+        assert mult(clone, inverse).equals(getIdentityMatrix(colCount)):"Wrong inverted matrix";
         basicAssertions();
     }
     boolean isInvertable(){
@@ -210,7 +217,7 @@ public class Matrix{
             throw new UnsupportedOperationException("Tried to calculate the determinant of a non-squared matrix");
         
         RealNumber det = new Rational();
-        RealNumber sign = new Rational(BigInteger.ONE);
+        RealNumber sign = new Rational(1);
         for (int row = 0; row < m.getRowCount(); row++) {
             if (m.getColCount() == 1) {
                 det = det.add(sign.mult(m.getValue(0, row)));
@@ -236,7 +243,7 @@ public class Matrix{
 
         Matrix im = new Matrix(n, n);
         for (int i = 0; i < n; i++)
-            im.setValue(i, i, new Rational(BigInteger.ONE));
+            im.setValue(i, i, new Rational(1));
 
         try{
             assert false;
@@ -264,22 +271,20 @@ public class Matrix{
             throw new NullPointerException("Null Pointer when adding values");
         if(colCount != m.getColCount() || rowCount != m.getRowCount())
             throw new UnsupportedOperationException("Tried to add values from matrix with different dimension");
-
         RealNumber checksum = sumOfValues();
         for (int col = 0;col<m.getColCount() ;col++ )
             for (int row = 0; row<getRowCount(); row++)
                 incValue(col, row, valueMultiplier.mult(m.getValue(col, row)));
-
-        if(m==this) assert sumOfValues()==checksum.add(valueMultiplier.mult(checksum)):"Addition Error of same object";
-        else        assert sumOfValues()==checksum.add(valueMultiplier.mult(m.sumOfValues())):"Addition Error of different objects";
+        if (m==this) assert sumOfValues().compareTo(checksum.add(valueMultiplier.mult(checksum))) == 0:"Addition Error of same object";
+        else        assert sumOfValues().compareTo(checksum.add(valueMultiplier.mult(m.sumOfValues()))) == 0:"Addition Error of different objects";
         basicAssertions();
     }
     private RealNumber sumOfValues(){
-        Rational sum = new Rational();
+        RealNumber sum = new Rational();
 
         for (RealNumber[] col: mat)
             for (RealNumber value: col)
-                sum.add(value);
+                sum = sum.add(value);
 
         return sum;
     }
@@ -290,8 +295,12 @@ public class Matrix{
             assert mat[0].length == rowCount:"Count of rows changed";
             assert mat.length == colCount:"Count of columns changed";
 
-            for (RealNumber[] col : mat)
+            for (RealNumber[] col : mat){
                 assert col != null:"A column is a null pointer";
+                for (RealNumber row : col) {
+                    assert row != null:"Value is a null pointer";
+                }
+            }
         }
     }
 }

@@ -18,4 +18,9 @@ class MathLib{
         }
         return min;
     }
+    public static RealNumber abs(RealNumber d){
+        if (d.compareTo(new Rational()) > 0)
+            return d;
+        return d.neg();
+    }
 }

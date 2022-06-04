@@ -3,24 +3,42 @@ import java.math.BigInteger;
 public class Rational implements RealNumber{
     final BigInteger nom, denom;
     Rational(BigInteger nom, BigInteger denom){
+        // System.out.println(nom+"/"+denom);
         if (denom.compareTo(BigInteger.ZERO) == 0)
             throw new IllegalArgumentException("Zero in denominator");
-        BigInteger m = nom;
-        BigInteger n = denom;
+        if (nom.compareTo(BigInteger.ZERO) == 0){
+            this.nom = nom;
+            this.denom = BigInteger.ONE;
+            return;
+        }
+        BigInteger m = nom.abs();
+        BigInteger n = denom.abs();
         BigInteger r = m.remainder(n);
         while (r.compareTo(BigInteger.ZERO) != 0) {
             m = n;
             n = r;
             r = m.remainder(n);
         }
+        if (denom.compareTo(BigInteger.ZERO) < 0){
+            nom = nom.negate();
+            denom = denom.negate();
+        }
         this.nom = nom.divide(n);
         this.denom = denom.divide(n);
+        if ((this.denom).compareTo(BigInteger.ZERO) < 0)
+            System.out.println((this.denom).compareTo(BigInteger.ZERO)+" "+this.nom+"/"+this.denom+" "+n+" "+nom+"/"+denom);
         assert (this.denom).compareTo(BigInteger.ZERO) >= 0:"Denominator negative";
         assert (this.denom).compareTo(BigInteger.ZERO) != 0:"Denominator zero";
         assert (this.nom).gcd(denom).compareTo(BigInteger.ONE) == 0:"Rational not shortened correctly";
     }
+    Rational(int nom, int denom){
+        this(new BigInteger(nom + ""), new BigInteger(denom + ""));
+    }
     Rational(BigInteger nom){
         this(nom, BigInteger.ONE);
+    }
+    Rational(int nom){
+        this(new BigInteger(nom + ""));
     }
     Rational(){
         this(BigInteger.ZERO);
@@ -110,25 +128,9 @@ public class Rational implements RealNumber{
         }
         return (nom.multiply(((Rational)real).getDenom())).compareTo(((Rational)real).getNom().multiply(denom));
     }
-    boolean gr(Rational r){
-        return compareTo(r) == 1;
-    }
-    boolean lo(Rational r){
-        return compareTo(r) == -1;
-    }
-    boolean ge(Rational r){
-        return compareTo(r) > -1;
-    }
-    boolean le(Rational r){
-        return compareTo(r) < 1;
-    }
-    boolean ne(Rational r){
-        return compareTo(r) != 0;
-    }
-    public boolean equals(Rational r){
-        return compareTo(r) == 0;
-    }
     public String toString(){
+        if (denom.compareTo(BigInteger.ONE) == 0)
+            return nom.toString();
         return nom.toString() + "/" + denom.toString();
     }
 }

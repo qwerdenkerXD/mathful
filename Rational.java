@@ -1,4 +1,5 @@
 import java.math.BigInteger;
+import java.math.BigDecimal;
 
 public class Rational{
     final BigInteger nom, denom;
@@ -27,6 +28,15 @@ public class Rational{
     }
     BigInteger getDenom(){
         return denom;
+    }
+    BigDecimal getReal(int precision){
+        return new BigDecimal(nom).divide(new BigDecimal(denom),precision,BigDecimal.ROUND_HALF_UP);
+    }
+    BigDecimal getReal(){
+        return getReal(10);
+    }
+    BigDecimal getRealExact(){
+        return new BigDecimal(nom).divide(new BigDecimal(denom));
     }
     Rational add(Rational r){
         return new Rational(nom.multiply(r.getDenom()).add(r.getNom().multiply(denom)), denom.multiply(r.getDenom()));

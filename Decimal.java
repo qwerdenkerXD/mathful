@@ -8,6 +8,9 @@ class Decimal extends java.math.BigDecimal implements RealNumber{
     Decimal(String dec){
         super(dec);
     }
+    Decimal(){
+        this(BigInteger.ZERO);
+    }
     Rational getRational(){
         return new Rational(unscaledValue(),TEN.pow(scale()).unscaledValue());
     }
@@ -63,5 +66,8 @@ class Decimal extends java.math.BigDecimal implements RealNumber{
     }
     public RealNumber power(int n){
         return (Decimal)pow(n);
+    }
+    public RealNumber neg(){
+        return (Decimal)negate();
     }
 }

@@ -22,6 +22,9 @@ public class Rational implements RealNumber{
     Rational(BigInteger nom){
         this(nom, BigInteger.ONE);
     }
+    Rational(){
+        this(BigInteger.ZERO);
+    }
     BigInteger getNom(){
         return nom;
     }
@@ -50,12 +53,12 @@ public class Rational implements RealNumber{
     public RealNumber sub(RealNumber real){
         if (real instanceof Decimal){
             try{
-                return ((Decimal)real).add(negate());
+                return ((Decimal)real).add(neg());
             } catch (ArithmeticException e) {
-                return ((Decimal)real).add(negate());
+                return ((Decimal)real).add(neg());
             }
         }
-        return add(((Rational)real).negate());
+        return add(((Rational)real).neg());
     }
     public RealNumber mult(RealNumber real){
         if (real instanceof Decimal){
@@ -94,7 +97,7 @@ public class Rational implements RealNumber{
     public Rational reciprocal(){
         return new Rational(denom, nom);
     }
-    Rational negate(){
+    public RealNumber neg(){
         return new Rational(nom.negate(), denom);
     }
     public int compareTo(RealNumber real){

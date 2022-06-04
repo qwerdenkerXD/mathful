@@ -1,6 +1,7 @@
 *
 # Allowing the following files
 !.gitignore
+!Main.java
 !Matrix.java
 !Rational.java
 !README.md

@@ -1,6 +1,7 @@
 import java.math.BigInteger;
+import java.math.BigDecimal;
 
-public class Rational implements RealNumber{
+public class Rational implements Computable{
     final BigInteger nom, denom;
     Rational(BigInteger nom, BigInteger denom){
         if (denom.compareTo(BigInteger.ZERO) == 0)
@@ -46,60 +47,29 @@ public class Rational implements RealNumber{
     BigInteger getDenom(){
         return denom;
     }
-    Decimal getReal(int precision){
-        return new Decimal(new Decimal(nom).divide(new Decimal(denom), precision, Decimal.ROUND_HALF_UP));
+    BigDecimal getReal(int precision){
+        return new BigDecimal(nom).divide(new BigDecimal(denom), precision, BigDecimal.ROUND_HALF_UP);
     }
-    Decimal getReal(){
-        try{
-            return getRealExact();
-        } catch (ArithmeticException e) {
-            return getReal(15);
-        }
+    BigDecimal getReal(){
+        return getReal(15);
     }
-    Decimal getRealExact(){
-        return (Decimal)new Decimal(nom).div(new Decimal(denom));
+    BigDecimal getRealExact(){
+        return new BigDecimal(nom).divide(new BigDecimal(denom));
     }
-    public RealNumber add(RealNumber real){
-        if (real instanceof Decimal){
-            try{
-                return ((Decimal)real).add(this);
-            } catch (ArithmeticException e) {
-                return ((Decimal)real).add(this);
-            }
-        }
-        return new Rational(nom.multiply(((Rational)real).getDenom()).add(((Rational)real).getNom().multiply(denom)), denom.multiply(((Rational)real).getDenom()));
+    public Computable add(Computable real){
+        return new Rational(( nom.multiply(((Rational)real).getDenom()) ).add( ((Rational)real).getNom().multiply(denom) ), 
+                              denom.multiply(((Rational)real).getDenom()) );
     }
-    public RealNumber sub(RealNumber real){
-        if (real instanceof Decimal){
-            try{
-                return ((Decimal)real).add(neg());
-            } catch (ArithmeticException e) {
-                return ((Decimal)real).add(neg());
-            }
-        }
-        return add(((Rational)real).neg());
+    public Computable sub(Computable real){
+        return add(((Rational)real).negate());
     }
-    public RealNumber mult(RealNumber real){
-        if (real instanceof Decimal){
-            try{
-                return ((Decimal)real).mult(getRealExact());
-            } catch (ArithmeticException e) {
-                return ((Decimal)real).mult(getReal());
-            }
-        }
+    public Computable mult(Computable real){
         return new Rational(nom.multiply(((Rational)real).getNom()), denom.multiply(((Rational)real).getDenom()));
     }
-    public RealNumber div(RealNumber real){
-        if (real instanceof Decimal){
-            try{
-                return ((Decimal)real).div(getRealExact());
-            } catch (ArithmeticException e) {
-                return ((Decimal)real).div(getReal());
-            }
-        }
+    public Computable div(Computable real){
         return mult(((Rational)real).reciprocal());
     }
-    public RealNumber power(int n){
+    public Computable power(int n){
         Rational result = this;
         if (n == 0){
             return new Rational(BigInteger.ONE, BigInteger.ONE);
@@ -116,14 +86,14 @@ public class Rational implements RealNumber{
     public Rational reciprocal(){
         return new Rational(denom, nom);
     }
-    public RealNumber neg(){
+    public Computable negate(){
         return new Rational(nom.negate(), denom);
     }
-    public int compareTo(RealNumber real){
-        if (real instanceof Decimal){
-            return compareTo(((Decimal)real).getRational());
-        }
-        return (nom.multiply(((Rational)real).getDenom())).compareTo(((Rational)real).getNom().multiply(denom));
+    public int compareTo(Rational r){
+        return (nom.multiply(r.getDenom())).compareTo(r.getNom().multiply(denom));
+    }
+    public boolean equals(Computable real){
+        return ((Rational)real).getNom().equals(nom) && ((Rational)real).getDenom().equals(denom);
     }
     public String toString(){
         if (denom.compareTo(BigInteger.ONE) == 0)

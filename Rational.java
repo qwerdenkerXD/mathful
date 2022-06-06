@@ -1,11 +1,11 @@
 import java.math.BigInteger;
 import java.math.BigDecimal;
 
-public class Rational implements Computable{
+public class Rational implements Constant{
     final BigInteger nom, denom;
     Rational(BigInteger nom, BigInteger denom){
         if (denom.compareTo(BigInteger.ZERO) == 0)
-            throw new IllegalArgumentException("Zero in denominator");
+            throw new IllegalArgumentException("Rational: Zero in denominator");
         if (nom.compareTo(BigInteger.ZERO) == 0){
             this.nom = nom;
             this.denom = BigInteger.ONE;
@@ -56,20 +56,20 @@ public class Rational implements Computable{
     BigDecimal getRealExact(){
         return new BigDecimal(nom).divide(new BigDecimal(denom));
     }
-    public Computable add(Computable real){
+    public Constant add(Constant real){
         return new Rational(( nom.multiply(((Rational)real).getDenom()) ).add( ((Rational)real).getNom().multiply(denom) ), 
                               denom.multiply(((Rational)real).getDenom()) );
     }
-    public Computable sub(Computable real){
+    public Constant sub(Constant real){
         return add(((Rational)real).negate());
     }
-    public Computable mult(Computable real){
+    public Constant mult(Constant real){
         return new Rational(nom.multiply(((Rational)real).getNom()), denom.multiply(((Rational)real).getDenom()));
     }
-    public Computable div(Computable real){
+    public Constant div(Constant real){
         return mult(((Rational)real).reciprocal());
     }
-    public Computable power(int n){
+    public Constant power(int n){
         Rational result = this;
         if (n == 0){
             return new Rational(BigInteger.ONE, BigInteger.ONE);
@@ -86,13 +86,13 @@ public class Rational implements Computable{
     public Rational reciprocal(){
         return new Rational(denom, nom);
     }
-    public Computable negate(){
+    public Constant negate(){
         return new Rational(nom.negate(), denom);
     }
     public int compareTo(Rational r){
         return (nom.multiply(r.getDenom())).compareTo(r.getNom().multiply(denom));
     }
-    public boolean equals(Computable real){
+    public boolean equals(Constant real){
         return ((Rational)real).getNom().equals(nom) && ((Rational)real).getDenom().equals(denom);
     }
     public String toString(){

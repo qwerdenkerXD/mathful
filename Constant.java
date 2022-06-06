@@ -1,9 +1,12 @@
-interface Constant {
-    public Constant add(Constant real);
-    public Constant mult(Constant real);
-    public Constant sub(Constant real);
-    public Constant div(Constant real);
-    public Constant power(int n);
-    public Constant negate();
-    public boolean equals(Constant real);
+abstract class Constant implements Dimensional {
+    public Constant getDim(){
+        return new Rational(1);
+    }
+    abstract Constant add(Constant real);
+    abstract Constant mult(Constant real);
+    abstract Constant sub(Constant real);
+    abstract Constant div(Constant real);
+    abstract Constant power(int n);
+    abstract Constant negate();
+    abstract boolean equals(Constant c);
 }

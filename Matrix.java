@@ -1,12 +1,13 @@
 import java.math.BigInteger;
 
-public class Matrix{
-	private Constant[][] mat;
+public class Matrix implements MultiDimensional{
+	private final Constant[][] mat;
     private final int colCount, rowCount;
     Matrix(int cols, int rows) {
         if(cols < 1 || rows < 1)
             throw new IllegalArgumentException("Matrix: Tried to create a matrix with dimension < 1x1");
-
+        if(cols*rows == 1)
+            throw new IllegalArgumentException("Matrix: Tried to create 1-dimensional matrix");
         colCount = cols;
         rowCount = rows;
         mat = new Constant[cols][rows];
@@ -20,6 +21,9 @@ public class Matrix{
         this(m.getColCount(), m.getRowCount());
         importValues(m);
     }
+    public Constant getDim(){
+        return new Rational(colCount*rowCount);
+    }
     int getRowCount(){
         return rowCount;
     }
@@ -30,6 +34,10 @@ public class Matrix{
         return mat[col][row];
     }
     Constant[] getCol(int c){
+        Constant[] col = new Constant[rowCount];
+        for (int i = 0; i < rowCount; i++) {
+            col[i] = mat[c][i];
+        }
         return mat[c];
     }
     Constant[] getRow(int r){
@@ -129,6 +137,7 @@ public class Matrix{
                     undoSwitch = row;
                 } 
             }
+
             for (int row = 1; row < rowCount; row++) {
                 if (!getValue(col, row).equals(new Rational())) {
                     Constant multiplier = getValue(col, row).div(getValue(col, 0));
@@ -172,7 +181,7 @@ public class Matrix{
                     equal = false;
         return equal;
     }
-    public Matrix clone(){
+    protected Matrix clone(){
         return new Matrix(this);
     }
     public String toString(){
@@ -196,7 +205,7 @@ public class Matrix{
                 values[row * colCount + col] = getValue(col, row).toString();
         return String.format(matOut + "%n", values);
     }
-    static Matrix mult(Matrix m1, Matrix m2) {
+    static Dimensional mult(Matrix m1, Matrix m2) {
         if(m1 == m2){
             m1.pow(2);
             return m1;
@@ -209,7 +218,8 @@ public class Matrix{
             for (int colM2 = 0; colM2 < m2.getColCount(); colM2++)
                 for (int i = 0; i < m1.getColCount(); i++)
                     result.incValue(colM2, rowM1, m1.getValue(i, rowM1).mult(m2.getValue(colM2, i)));
-
+        if (result.getDim().equals(new Rational(1)))
+            return new Rational((Rational)result.getValue(0, 0));
         return result;
     }
     static Constant det(Matrix m) {
@@ -221,8 +231,8 @@ public class Matrix{
         Constant det = new Rational();
         Constant sign = new Rational(1);
         for (int row = 0; row < m.getRowCount(); row++) {
-            if (m.getColCount() == 1) {
-                det = det.add(sign.mult(m.getValue(0, row)));
+            if (m.getColCount() == 2) {
+                det = det.add(sign.mult(m.getValue(0, row).mult(m.getValue(1, 1-row))));
             } else{
                 Matrix subDet = new Matrix(m.getColCount()-1, m.getRowCount()-1);
                 for (int subCol = 1; subCol < m.getColCount(); subCol++) {

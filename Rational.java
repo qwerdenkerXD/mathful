@@ -1,7 +1,7 @@
 import java.math.BigInteger;
 import java.math.BigDecimal;
 
-public class Rational implements Constant{
+public class Rational extends Constant{
     final BigInteger nom, denom;
     Rational(BigInteger nom, BigInteger denom){
         if (denom.compareTo(BigInteger.ZERO) == 0)
@@ -38,6 +38,9 @@ public class Rational implements Constant{
     Rational(int nom){
         this(new BigInteger(nom + ""));
     }
+    Rational(Rational r){
+        this(r.getNom(), r.getDenom());
+    }
     Rational(){
         this(BigInteger.ZERO);
     }
@@ -48,7 +51,7 @@ public class Rational implements Constant{
         return denom;
     }
     BigDecimal getReal(int precision){
-        return new BigDecimal(nom).divide(new BigDecimal(denom), precision, BigDecimal.ROUND_HALF_UP);
+        return new BigDecimal(nom).divide(new BigDecimal(denom), precision, java.math.RoundingMode.HALF_UP);
     }
     BigDecimal getReal(){
         return getReal(15);
@@ -99,5 +102,8 @@ public class Rational implements Constant{
         if (denom.compareTo(BigInteger.ONE) == 0)
             return nom.toString();
         return nom.toString() + "/" + denom.toString();
+    }
+    protected Rational clone(){
+        return new Rational(this);
     }
 }

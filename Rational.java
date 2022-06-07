@@ -59,20 +59,20 @@ public class Rational extends Constant{
     BigDecimal getRealExact(){
         return new BigDecimal(nom).divide(new BigDecimal(denom));
     }
-    public Constant add(Constant real){
+    public Rational add(Constant real){
         return new Rational(( nom.multiply(((Rational)real).getDenom()) ).add( ((Rational)real).getNom().multiply(denom) ), 
                               denom.multiply(((Rational)real).getDenom()) );
     }
-    public Constant sub(Constant real){
+    public Rational sub(Constant real){
         return add(((Rational)real).negate());
     }
-    public Constant mult(Constant real){
+    public Rational mult(Constant real){
         return new Rational(nom.multiply(((Rational)real).getNom()), denom.multiply(((Rational)real).getDenom()));
     }
-    public Constant div(Constant real){
+    public Rational div(Constant real){
         return mult(((Rational)real).reciprocal());
     }
-    public Constant power(int n){
+    public Rational pow(int n){
         Rational result = this;
         if (n == 0){
             return new Rational(BigInteger.ONE, BigInteger.ONE);
@@ -89,7 +89,7 @@ public class Rational extends Constant{
     public Rational reciprocal(){
         return new Rational(denom, nom);
     }
-    public Constant negate(){
+    public Rational negate(){
         return new Rational(nom.negate(), denom);
     }
     public int compareTo(Rational r){

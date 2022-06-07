@@ -6,7 +6,7 @@ abstract class Constant implements Dimensional {
     abstract Constant mult(Constant real);
     abstract Constant sub(Constant real);
     abstract Constant div(Constant real);
-    abstract Constant power(int n);
+    abstract Constant pow(int n);
     abstract Constant negate();
     abstract boolean equals(Constant c);
 }

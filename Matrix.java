@@ -1,87 +1,27 @@
 import java.math.BigInteger;
 
-public class Matrix implements MultiDimensional{
-	private final Constant[][] mat;
-    private final int colCount, rowCount;
+public class Matrix extends MultiDimensional{
     Matrix(int cols, int rows) {
-        if(cols < 1 || rows < 1)
-            throw new IllegalArgumentException("Matrix: Tried to create a matrix with dimension < 1x1");
-        if(cols*rows == 1)
-            throw new IllegalArgumentException("Matrix: Tried to create 1-dimensional matrix");
-        colCount = cols;
-        rowCount = rows;
-        mat = new Constant[cols][rows];
-        for (int col = 0; col < colCount; col++) {
-            for (int row = 0; row < rowCount; row++) {
-                setValue(col, row, new Rational());
-            }
-        }
+        super(cols, rows);
     }
     Matrix(Matrix m){
-        this(m.getColCount(), m.getRowCount());
-        importValues(m);
-    }
-    public Constant getDim(){
-        return new Rational(colCount*rowCount);
-    }
-    int getRowCount(){
-        return rowCount;
-    }
-    int getColCount(){
-        return colCount;
-    }
-    Constant getValue(int col, int row){
-        return mat[col][row];
-    }
-    Constant[] getCol(int c){
-        Constant[] col = new Constant[rowCount];
-        for (int i = 0; i < rowCount; i++) {
-            col[i] = mat[c][i];
-        }
-        return mat[c];
+        super(m);
     }
     Constant[] getRow(int r){
-        Constant[] row = new Constant[colCount];
-        for (int col = 0; col < colCount; col++)
-            row[col] = mat[col][r];
+        Constant[] row = new Constant[getColCount()];
+        for (int col = 0; col < getColCount(); col++)
+            row[col] = getValue(col, r);
 
         return row;
-    }
-    void setValue(int col, int row, Constant value){
-        if (value == null)
-            throw new NullPointerException("Matrix: Null Pointer when setting a value");
-        mat[col][row] = value;
-    }
-    void incValue(int col, int row, Constant incValue){
-        mat[col][row] = mat[col][row].add(incValue);
-    }
-    void setCol(int c, Constant[] col) {
-        if (col == null)
-            throw new NullPointerException("Matrix: Null Pointer when setting a column");
-        if (col.length != rowCount)
-            throw new IllegalArgumentException("Matrix: Different counts of rows when setting a column");
-        mat[c] = new Constant[rowCount];
-        for (int row = 0; row < rowCount; row++) {
-            mat[c][row] = col[row];
-        }
-        basicAssertions();
     }
     void setRow(int r, Constant[] row) {
         if (row == null)
             throw new NullPointerException("Matrix: Null Pointer when setting a row");
-        if (row.length != colCount)
+        if (row.length != getColCount())
             throw new IllegalArgumentException("Matrix: Different counts of columns when setting a row");
-        for (int col = 0; col < colCount; col++) {
-            mat[col][r] = row[col];
+        for (int col = 0; col < getColCount(); col++) {
+            setValue(col, r, row[col]);
         }
-        basicAssertions();
-    }
-    Matrix getTransposed(){
-        Matrix trans = new Matrix(rowCount, colCount);
-        for (int col = 0; col < colCount; col++)
-            for (int row = 0; row < rowCount; row++)
-                trans.setValue(row, col, getValue(col, row));
-        return trans;
     }
     void switchCols(int c1, int c2){
         Constant[] c = getCol(c1);
@@ -93,32 +33,29 @@ public class Matrix implements MultiDimensional{
         setRow(r1, getRow(r2));
         setRow(r2, r);
     }
-    void add(Matrix m){
-        addMultiplied(m,new Rational(1));
-    }
-    void sub(Matrix m){
-        addMultiplied(m,new Rational(-1));
-    }
-    void mult(Constant x){
-        Constant checksum = sumOfValues();
-        addMultiplied(this, x.sub(new Rational(1)));
-        assert sumOfValues().equals(x.mult(checksum)):"Multiplication Error with constant";
+    void div(Matrix m){
+        if (m == null)
+            throw new NullPointerException("Matrix: Null Pointer when dividing matrices");
+        if(getColCount() != m.getColCount() || getRowCount() != m.getRowCount())
+            throw new UnsupportedOperationException("Matrix: Tried to divide values from matrix with different dimension");
+        Matrix clone = m.clone();
+        clone.invert();
+        importValues((Matrix)mult(this, clone));
     }
     void pow(int n) {
         if (!isSquareMatrix()) {
             throw new UnsupportedOperationException("Matrix: Tried to power a non-squared matrix");
         }
         if (n == 0) {
-            importValues(getIdentityMatrix(colCount));
+            importValues(getIdentityMatrix(getColCount()));
             return;
         }
         if (n < 0) {
             invert();
             n = -n;
         }
-        Matrix clone = clone();
         for (int i = 1; i < n; i++)
-            mult(this,clone);
+            importValues((Matrix)mult(this,this));
     }
     void invert() {
         if (!isSquareMatrix())
@@ -126,9 +63,9 @@ public class Matrix implements MultiDimensional{
         if (!isInvertable())
             throw new UnsupportedOperationException("Matrix: Matrix not invertable");
         //Gaussian elimination
-        Matrix inverse = getIdentityMatrix(colCount);
+        Matrix inverse = getIdentityMatrix(getColCount());
         Matrix clone = clone();
-        for (int col = 0; col < colCount; col++) {
+        for (int col = 0; col < getColCount(); col++) {
             int undoSwitch = -1;
             for (int row = col; undoSwitch == -1; row++) {
                 if (!getValue(col, row).equals(new Rational())){
@@ -138,17 +75,17 @@ public class Matrix implements MultiDimensional{
                 } 
             }
 
-            for (int row = 1; row < rowCount; row++) {
+            for (int row = 1; row < getRowCount(); row++) {
                 if (!getValue(col, row).equals(new Rational())) {
                     Constant multiplier = getValue(col, row).div(getValue(col, 0));
-                    for (int i = 0; i < colCount; i++) {
+                    for (int i = 0; i < getColCount(); i++) {
                         setValue(i, row, getValue(i, row).sub(multiplier.mult(getValue(i, 0))));
                         inverse.setValue(i, row, inverse.getValue(i, row).sub(multiplier.mult(inverse.getValue(i, 0))));
                     }
                 }
             }
             Constant divider = getValue(col, 0);
-            for (int c = 0; c < colCount; c++) {
+            for (int c = 0; c < getColCount(); c++) {
                 setValue(c, 0, getValue(c, 0).div(divider));
                 inverse.setValue(c, 0, inverse.getValue(c, 0).div(divider));
             }
@@ -158,8 +95,7 @@ public class Matrix implements MultiDimensional{
             inverse.switchRows(undoSwitch,col);
         }
         importValues(inverse);
-        assert mult(clone, inverse).equals(getIdentityMatrix(colCount)):"Wrong inverted matrix";
-        basicAssertions();
+        assert ((Matrix)mult(clone, inverse)).equals(getIdentityMatrix(getColCount())):"Wrong inverted matrix";
     }
     boolean isInvertable(){
         if (!isSquareMatrix())
@@ -167,60 +103,7 @@ public class Matrix implements MultiDimensional{
         return !det(this).equals(new Rational());
     }
     boolean isSquareMatrix(){
-        return colCount == rowCount;
-    }
-    public boolean equals(Matrix m){
-        if (m == this)
-            return true;
-        if (m == null || rowCount != m.getRowCount() || colCount != m.getColCount())
-            return false;
-        boolean equal = true;
-        for (int col = 0; col < colCount && equal; col++)
-            for (int row = 0; row < rowCount; row++)
-                if (!getValue(col, row).equals(m.getValue(col, row)))
-                    equal = false;
-        return equal;
-    }
-    protected Matrix clone(){
-        return new Matrix(this);
-    }
-    public String toString(){
-        String matOut = "%n";
-        for (Constant[] col: mat) {  // preparing formatted String
-            int minLength = (MathLib.min(col[0],col).toString()).length()+1;
-            int maxLength = (MathLib.max(col[0],col).toString()).length()+1;
-            if (maxLength > minLength)
-                matOut += " %" + maxLength + "s";
-            else
-                matOut += " %" + minLength + "s";
-        }
-        if (true) {
-            String row = matOut;
-            for (int i = 0; i < rowCount-1; i++)
-                matOut += row;
-        }
-        Object[] values = new Object[colCount * rowCount];
-        for (int row = 0; row < rowCount; row++)
-            for (int col = 0; col < colCount; col++)
-                values[row * colCount + col] = getValue(col, row).toString();
-        return String.format(matOut + "%n", values);
-    }
-    static Dimensional mult(Matrix m1, Matrix m2) {
-        if(m1 == m2){
-            m1.pow(2);
-            return m1;
-        }
-        if (m1.getColCount() != m2.getRowCount())
-            throw new UnsupportedOperationException("Matrix: Matrix multiplication not possible");
-        
-        Matrix result = new Matrix(m2.getColCount(), m1.getRowCount());
-        for (int rowM1 = 0; rowM1 < m1.getRowCount(); rowM1++)
-            for (int colM2 = 0; colM2 < m2.getColCount(); colM2++)
-                for (int i = 0; i < m1.getColCount(); i++)
-                    result.incValue(colM2, rowM1, m1.getValue(i, rowM1).mult(m2.getValue(colM2, i)));
-        if (result.getDim().equals(new Rational(1)))
-            return new Rational((Rational)result.getValue(0, 0));
-        return result;
+        return getColCount() == getRowCount();
     }
     static Constant det(Matrix m) {
         if(m == null)
@@ -266,53 +149,7 @@ public class Matrix implements MultiDimensional{
         }
         return im;
     }
-    protected void importValues(Matrix m) {
-        if (m == null)
-            throw new NullPointerException("Matrix: Null Pointer when importing values");
-        if(colCount != m.getColCount() || rowCount != m.getRowCount())
-            throw new UnsupportedOperationException("Matrix: Tried to import values from matrix with different dimension");
-
-        for (int col = 0; col < colCount; col++)
-            for (int row = 0; row < rowCount; row++)
-                setValue(col, row, m.getValue(col, row));
-
-        assert equals(m):"Wrong value import";
-    }
-    protected void addMultiplied(Matrix m, Constant valueMultiplier) {
-        if (m == null)
-            throw new NullPointerException("Matrix: Null Pointer when adding values");
-        if(colCount != m.getColCount() || rowCount != m.getRowCount())
-            throw new UnsupportedOperationException("Matrix: Tried to add values from matrix with different dimension");
-        Constant checksum = sumOfValues();
-        for (int col = 0;col<m.getColCount() ;col++ )
-            for (int row = 0; row<getRowCount(); row++)
-                incValue(col, row, valueMultiplier.mult(m.getValue(col, row)));
-        if (m==this) assert sumOfValues().equals(checksum.add(valueMultiplier.mult(checksum))):"Addition Error of same object";
-        else        assert sumOfValues().equals(checksum.add(valueMultiplier.mult(m.sumOfValues()))):"Addition Error of different objects";
-        basicAssertions();
-    }
-    private Constant sumOfValues(){
-        Constant sum = new Rational();
-
-        for (Constant[] col: mat)
-            for (Constant value: col)
-                sum = sum.add(value);
-
-        return sum;
-    }
-    private void basicAssertions(){
-        try{
-            assert false;
-        } catch (AssertionError e) {
-            assert mat[0].length == rowCount:"Count of rows changed";
-            assert mat.length == colCount:"Count of columns changed";
-
-            for (Constant[] col : mat){
-                assert col != null:"A column is a null pointer";
-                for (Constant row : col) {
-                    assert row != null:"Value is a null pointer";
-                }
-            }
-        }
+    protected Matrix clone(){
+        return new Matrix(this);
     }
 }

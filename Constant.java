@@ -8,5 +8,6 @@ abstract class Constant implements Dimensional {
     abstract Constant div(Constant real);
     abstract Constant pow(int n);
     abstract Constant negate();
+    abstract Constant reciprocal();
     abstract boolean equals(Constant c);
 }

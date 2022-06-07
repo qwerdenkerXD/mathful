@@ -74,6 +74,9 @@ abstract class MultiDimensional implements Dimensional{
         addMultiplied(this, x.sub(new Rational(1)));
         assert sumOfValues().equals(x.mult(checksum)):"Multiplication Error with constant";
     }
+    void div(Constant x){
+        mult(x.reciprocal());
+    }
     public boolean equals(MultiDimensional m){
         if (m == this)
             return true;
@@ -136,7 +139,7 @@ abstract class MultiDimensional implements Dimensional{
             return new Rational((Rational)result.getValue(0, 0));
         return result;
     }
-    protected void addMultiplied(MultiDimensional m, Constant valueMultiplier) {
+    private void addMultiplied(MultiDimensional m, Constant valueMultiplier) {
         if (m == null)
             throw new NullPointerException("MultiDimensional: Null Pointer when adding values");
         if(colCount != m.getColCount() || rowCount != m.getRowCount())

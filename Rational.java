@@ -86,7 +86,7 @@ public class Rational extends Constant{
         }
         return result;
     }
-    public Rational reciprocal(){
+    Rational reciprocal(){
         return new Rational(denom, nom);
     }
     public Rational negate(){

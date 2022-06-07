@@ -54,8 +54,9 @@ public class Matrix extends MultiDimensional{
             invert();
             n = -n;
         }
+        Matrix clone = clone();
         for (int i = 1; i < n; i++)
-            importValues((Matrix)mult(this,this));
+            importValues((Matrix)mult(this,clone));
     }
     void invert() {
         if (!isSquareMatrix())

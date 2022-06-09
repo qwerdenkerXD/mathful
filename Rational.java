@@ -38,6 +38,12 @@ public class Rational extends Constant{
     Rational(int nom){
         this(new BigInteger(nom + ""));
     }
+    Rational(BigDecimal bigD){
+        this(bigD.unscaledValue(),BigDecimal.TEN.pow(bigD.scale()).unscaledValue());
+    }
+    Rational(double d){
+        this(new BigDecimal(d + ""));  // converting d to String to avoid rounding errors in BigDecimal constructor
+    }
     Rational(Rational r){
         this(r.getNom(), r.getDenom());
     }

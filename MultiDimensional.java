@@ -1,12 +1,13 @@
 abstract class MultiDimensional implements Dimensional{
     private final Constant[][] mat;
     private final int colCount, rowCount;
+
+    /**
+     * @param cols Number of columns
+     * @param rows Number of rows
+     * @throws IllegalArgumentException if dimension <= 1x1
+     */
     MultiDimensional(int cols, int rows){
-        /**
-         * @param cols Number of columns
-         * @param rows Number of rows
-         * @throws IllegalArgumentException if dimension <= 1x1
-         */
         if(cols < 1 || rows < 1)
             throw new IllegalArgumentException("MultiDimensional: Tried to create a MultiDimensional with dimension < 1x1");
         if(cols*rows == 1)
@@ -27,11 +28,12 @@ abstract class MultiDimensional implements Dimensional{
     public Constant getDim(){
         return new Rational(colCount*rowCount);
     }
+
+    /**
+     * @param col index of column, starting at zero
+     * @param row index of row, starting at zero
+     */
     Constant getValue(int col, int row){
-        /**
-         * @param col index of column, starting at zero
-         * @param row index of row, starting at zero
-         */
         return mat[col][row];
     }
     int getRowCount(){
@@ -40,17 +42,19 @@ abstract class MultiDimensional implements Dimensional{
     int getColCount(){
         return colCount;
     }
+
+    /**
+     * @param c index of column, starting at zero
+     * @return returns flat copy of the specified column
+     */
     Constant[] getCol(int c){
-        /**
-         * @param c index of column, starting at zero
-         * @return returns flat copy of the specified column
-         */
         Constant[] col = new Constant[rowCount];
         for (int i = 0; i < rowCount; i++) {
             col[i] = mat[c][i];
         }
         return col;
     }
+
     MultiDimensional getTransposed(){
         MultiDimensional trans = clone();
         for (int col = 0; col < colCount; col++)
@@ -58,33 +62,36 @@ abstract class MultiDimensional implements Dimensional{
                 trans.setValue(row, col, getValue(col, row));
         return trans;
     }
+
+    /**
+     * @param col index of column, starting at zero
+     * @param row index of column, starting at zero
+     * @throws NullPointerException if value is null
+     * @throws ArrayIndexOutOfBoundsException if row, col < 0 or row >= rowCount or col >= colCount
+     */
     void setValue(int col, int row, Constant value){
-        /**
-         * @param col index of column, starting at zero
-         * @param row index of column, starting at zero
-         * @throws NullPointerException if value is null
-         * @throws ArrayIndexOutOfBoundsException if row, col < 0 or row >= rowCount or col >= colCount
-         */
         if (value == null)
             throw new NullPointerException("Matrix: Null Pointer when setting a value");
         mat[col][row] = value;
     }
+
+    /**
+     * @param col index of column, starting at zero
+     * @param row index of column, starting at zero
+     * @throws NullPointerException if value is null
+     * @throws ArrayIndexOutOfBoundsException if row, col < 0 or row >= rowCount or col >= colCount
+     */
     void incValue(int col, int row, Constant incValue){
-        /**
-         * @param col index of column, starting at zero
-         * @param row index of column, starting at zero
-         * @throws NullPointerException if value is null
-         * @throws ArrayIndexOutOfBoundsException if row, col < 0 or row >= rowCount or col >= colCount
-         */
         mat[col][row] = mat[col][row].add(incValue);
     }
+
+    /**
+     * Sets the values of the specified column with index c to the col's values
+     * @param c index of column, starting at zero
+     * @throws NullPointerException if col is null
+     * @throws IllegalArgumentException if col contains more or less values than colCount
+     */
     void setCol(int c, Constant[] col) {
-        /**
-         * Sets the values of the specified column with index c to the col's values
-         * @param c index of column, starting at zero
-         * @throws NullPointerException if col is null
-         * @throws IllegalArgumentException if col contains more or less values than colCount
-         */
         if (col == null)
             throw new NullPointerException("Matrix: Null Pointer when setting a column");
         if (col.length != rowCount)
@@ -94,39 +101,44 @@ abstract class MultiDimensional implements Dimensional{
             mat[c][row] = col[row];
         }
     }
+
+    /**
+     * Adds m to this object
+     */
     void add(MultiDimensional m){
-        /**
-         * Adds m to this object
-         */
         addMultiplied(m,new Rational(1));
     }
+
+    /**
+     * Subtracts m from this object
+     */
     void sub(MultiDimensional m){
-        /**
-         * Subtracts m from this object
-         */
         addMultiplied(m,new Rational(-1));
     }
+
+    /**
+     * Multiplicates this object with x
+     * @throws NullPointerException if x is null
+     */
     void mult(Constant x){
-        /**
-         * Multiplicates this object with x
-         * @throws NullPointerException if x is null
-         */
         Constant checksum = sumOfValues();
         addMultiplied(this, x.sub(new Rational(1)));
         assert sumOfValues().equals(x.mult(checksum)):"Multiplication Error with constant";
     }
+
+    /**
+     * Divides this object by x
+     * @throws NullPointerException if x is null
+     */
     void div(Constant x){
-        /**
-         * Divides this object by x
-         * @throws NullPointerException if x is null
-         */
         mult(x.reciprocal());
     }
+
+    /**
+     * Checks if this object is deep equal to m
+     * @return returns false if m is null or of different dimension
+     */
     public boolean equals(MultiDimensional m){
-        /**
-         * Checks if this object is deep equal to m
-         * @return returns false if m is null or of different dimension
-         */
         if (m == this)
             return true;
         if (m == null || rowCount != m.getRowCount() || colCount != m.getColCount())
@@ -160,12 +172,13 @@ abstract class MultiDimensional implements Dimensional{
         return String.format(matOut + "%n", values);
     }
     abstract protected MultiDimensional clone();
+
+    /**
+     * Sets the values of this object to m's values
+     * @throws NullPointerException if m is null
+     * @throws UnsupportedOperationException if m of different dimension
+     */
     protected void importValues(MultiDimensional m) {
-        /**
-         * Sets the values of this object to m's values
-         * @throws NullPointerException if m is null
-         * @throws UnsupportedOperationException if m of different dimension
-         */
         if (m == null)
             throw new NullPointerException("MultiDimensional: Null Pointer when importing values");
         if(colCount != m.getColCount() || rowCount != m.getRowCount())
@@ -177,12 +190,13 @@ abstract class MultiDimensional implements Dimensional{
 
         assert equals(m):"Wrong value import";
     }
+
+    /**
+     * Multiplicates m1 with m2 like m1 * m2
+     * @return returns Constant if dim(m1 * m2) is 1x1
+     * @throws UnsupportedOperationException if colCount of m1 doesn't match m2's rowCount
+     */
     static Dimensional mult(MultiDimensional m1, MultiDimensional m2) {
-        /**
-         * Multiplicates m1 with m2 like m1 * m2
-         * @return returns Constant if dim(m1 * m2) is 1x1
-         * @throws UnsupportedOperationException if colCount of m1 doesn't match m2's rowCount
-         */
         if(m1 == m2){
             m2 = m2.clone();
         }
@@ -198,12 +212,13 @@ abstract class MultiDimensional implements Dimensional{
             return new Rational((Rational)result.getValue(0, 0));
         return result;
     }
+
+    /**
+     * Calculates this + m * valueMultiplier
+     * @throws NullPointerException if m or valueMultiplier are null
+     * @throws UnsupportedOperationException if m of different dimension
+     */
     private void addMultiplied(MultiDimensional m, Constant valueMultiplier) {
-        /**
-         * Calculates this + m * valueMultiplier
-         * @throws NullPointerException if m or valueMultiplier are null
-         * @throws UnsupportedOperationException if m of different dimension
-         */
         if (m == null || valueMultiplier == null)
             throw new NullPointerException("MultiDimensional: Null Pointer when adding values");
         if(colCount != m.getColCount() || rowCount != m.getRowCount())
@@ -218,10 +233,11 @@ abstract class MultiDimensional implements Dimensional{
         if (m==this) assert sumOfValues().equals(checksum.add(valueMultiplier.mult(checksum))):"Addition Error of same object";
         else         assert sumOfValues().equals(checksum.add(valueMultiplier.mult(m.sumOfValues()))):"Addition Error of different objects";
     }
+
+    /**
+     * Calculates the sum of all values this object contains
+     */
     private Constant sumOfValues(){
-        /**
-         * Calculates the sum of all values this object contains
-         */
         Constant sum = new Rational();
 
         for (Constant[] col: mat)

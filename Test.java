@@ -55,9 +55,6 @@ class TestMatrix{
     }
     public static void testSetGetSwitchCol() {
         Matrix invertable = new Matrix(3,3);
-        Constant[] row1 = {new Rational(3),new Rational(0),new Rational(2)};
-        Constant[] row2 = {new Rational(2),new Rational(0),new Rational(-2)};
-        Constant[] row3 = {new Rational(0),new Rational(1),new Rational(1)};
 
         Constant[] fetchedCol = {new Rational(3), new Rational(2), new Rational(0)};
         invertable.setCol(0,fetchedCol);
